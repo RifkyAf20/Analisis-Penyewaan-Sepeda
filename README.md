@@ -29,18 +29,3 @@ pip install -r requirements.txt
 ```
 streamlit run dashboard/dashboard.py
 ```
-
----
-
-## Struktur Folder
-
-```
-submission/
-├── dashboard/
-│   └── dashboard.py
-|   └── day.csv
-├── notebook.ipynb
-├── requirements.txt
-└── README.md
-└── url.txt
-```
