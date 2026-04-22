@@ -103,7 +103,7 @@ def style_ax(ax, title=""):
 
 @st.cache_data
 def load_data():
-    for path in ["day.csv"]:
+    for path in ["dashboard/day.csv"]:
         if os.path.exists(path):
             df = pd.read_csv(path)
             break
