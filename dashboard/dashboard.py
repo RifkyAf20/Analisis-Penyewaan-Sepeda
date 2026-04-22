@@ -103,41 +103,26 @@ def style_ax(ax, title=""):
 
 @st.cache_data
 def load_data():
-    for path in ["dashboard/main_data.csv"]:
-        if os.path.exists(path):
-            df = pd.read_csv(path)
-            break
-    else:
-        np.random.seed(42)
-        n = 731
-        dates = pd.date_range("2011-01-01", periods=n)
-        weather_probs = [0.63, 0.30, 0.06, 0.01]
-        weathersit = np.random.choice([1,2,3,4], size=n, p=weather_probs)
-        mnth = dates.month
-        season = dates.month.map(lambda m: 1 if m in [3,4,5] else 2 if m in [6,7,8] else 3 if m in [9,10,11] else 4)
-        base = 4000
-        cnt = (base
-               + np.where(weathersit==1, 1200, np.where(weathersit==2, 300, np.where(weathersit==3,-800,-1500)))
-               + (mnth - 6.5)**2 * (-60)
-               + np.random.normal(0, 400, n)).clip(500).astype(int)
-        workingday = np.where(dates.weekday < 5, 1, 0)
-        df = pd.DataFrame({
-            "dteday": dates, "season": season, "mnth": mnth,
-            "weathersit": weathersit, "cnt": cnt,
-            "casual": (cnt * 0.2).astype(int),
-            "registered": (cnt * 0.8).astype(int),
-            "workingday": workingday,
-            "temp": np.random.uniform(0.1, 0.9, n),
-            "hum": np.random.uniform(0.3, 0.9, n),
-            "windspeed": np.random.uniform(0.05, 0.5, n),
-            "yr": np.where(dates.year == 2011, 0, 1),
-        })
+    df = pd.read_csv("dashboard/main_data.csv") 
 
     df['dteday'] = pd.to_datetime(df['dteday'])
-    df['season'] = df['season'].map({1:'Spring',2:'Summer',3:'Fall',4:'Winter'})
-    df['weathersit'] = df['weathersit'].map({
-        1:'Clear', 2:'Mist', 3:'Light Snow/Rain', 4:'Heavy Rain'
+
+    df['season'] = df['season'].map({
+        1: 'Spring',
+        2: 'Summer',
+        3: 'Fall',
+        4: 'Winter'
     })
+
+    df['weathersit'] = df['weathersit'].map({
+        1: 'Clear',
+        2: 'Mist',
+        3: 'Light Snow/Rain',
+        4: 'Heavy Rain'
+    })
+
+    df['mnth'] = df['mnth'].astype(int)
+
     return df
 
 df = load_data()
