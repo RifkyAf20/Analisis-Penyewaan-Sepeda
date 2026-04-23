@@ -158,7 +158,7 @@ if selected_weather:
     dff = dff[dff['weathersit'].isin(selected_weather)]
 
 st.markdown("# 🚲 Bike Sharing Dashboard")
-st.markdown("Analisis penyewaan sepeda berdasarkan **kondisi cuaca** dan **tren bulanan**")
+st.markdown("Analisis penyewaan sepeda berdasarkan **Kondisi Cuaca** dan **Tren Bulanan**")
 st.divider()
 
 k1, k2, k3, k4 = st.columns(4)
@@ -169,8 +169,7 @@ k4.metric("Total Hari Data",   f"{len(dff):,}")
 
 st.divider()
 
-
-st.markdown("## Pertanyaan 1 — Bagaimana pengaruh kondisi cuaca terhadap jumlah penyewaan sepeda?")
+st.markdown("## Pertanyaan 1 — Bagaimana kondisi cuaca memengaruhi jumlah penyewaan sepeda pada periode 2011–2012, serta bagaimana temuan tersebut dapat dimanfaatkan untuk meningkatkan efektivitas strategi operasional?")
 
 col1, col2 = st.columns([3, 2])
 
@@ -219,18 +218,26 @@ with col2:
     st.pyplot(fig2)
     plt.close()
 
-st.markdown("""
+st.markdown(f"""
 <div class="insight-box">
-💡 <b>Insight:</b> Cuaca cerah (<i>Clear</i>) menghasilkan rata-rata penyewaan tertinggi, 
-jauh di atas kondisi berkabut atau hujan. Cuaca buruk seperti <i>Light Snow/Rain</i> 
-menurunkan minat penyewa secara signifikan — mengindikasikan bahwa kondisi cuaca 
-adalah faktor utama yang memengaruhi perilaku pengguna sepeda.
+<b>Insight:</b> Rata-rata penyewaan tertinggi terjadi pada kondisi 
+<i>Clear</i> sebesar <b style="color:#f0c040">{int(weather_avg.max()):,}</b>, 
+sedangkan kondisi <i>Light Snow/Rain</i> menunjukkan penurunan signifikan.
+
+Hal ini menunjukkan bahwa cuaca merupakan faktor utama dalam menentukan permintaan.
+
+<b>Rekomendasi Strategi:</b>
+<ul>
+<li>Meningkatkan ketersediaan sepeda saat cuaca cerah (peak condition)</li>
+<li>Menerapkan diskon atau promo pada cuaca buruk untuk menjaga demand</li>
+<li>Menggunakan prediksi cuaca untuk perencanaan operasional</li>
+</ul>
 </div>
 """, unsafe_allow_html=True)
 
 st.divider()
 
-st.markdown("## Pertanyaan 2 — Bulan apa yang memiliki jumlah penyewaan sepeda tertinggi?")
+st.markdown("## Pertanyaan 2 — Bulan mana yang mencatat jumlah penyewaan sepeda tertinggi selama periode 2011–2012, dan strategi apa yang dapat diterapkan untuk meningkatkan permintaan pada bulan dengan tingkat penyewaan yang lebih rendah?")
 
 monthly = dff.groupby('mnth')['cnt'].sum().reset_index()
 month_names = {1:'Jan',2:'Feb',3:'Mar',4:'Apr',5:'Mei',6:'Jun',
@@ -264,60 +271,101 @@ best_val   = int(monthly['cnt'].max())
 
 st.markdown(f"""
 <div class="insight-box">
-💡 <b>Insight:</b> Penyewaan sepeda mencapai puncaknya pada bulan 
-<b style="color:#f0c040">{best_month}</b> dengan total <b style="color:#f0c040">{best_val:,}</b> penyewaan. 
-Tren menunjukkan kenaikan dari awal tahun, memuncak di pertengahan tahun (musim panas/gugur), 
-lalu menurun kembali di akhir tahun — sesuai dengan pola cuaca yang lebih nyaman untuk bersepeda 
-di luar ruangan pada bulan-bulan tersebut.
+<b>Insight:</b> Puncak penyewaan terjadi pada bulan 
+<b style="color:#f0c040">{best_month}</b> dengan total 
+<b style="color:#f0c040">{best_val:,}</b> penyewaan.
+
+Tren menunjukkan peningkatan menuju pertengahan tahun dan penurunan setelahnya,
+yang mengindikasikan pola musiman (seasonality).
+
+<b>Rekomendasi Strategi:</b>
+<ul>
+<li>Optimasi operasional pada bulan peak (penambahan armada)</li>
+<li>Strategi diskon pada bulan low demand</li>
+<li>Kampanye marketing berbasis musim</li>
+</ul>
 </div>
 """, unsafe_allow_html=True)
 
 st.divider()
 
-st.markdown("## Analisis Lanjutan — Hari Kerja vs Hari Libur")
+st.markdown("## Analisis Lanjutan — Pola Penggunaan Berdasarkan Aktivitas dan Musim")
 
 c1, c2 = st.columns(2)
 
 with c1:
     wd = dff.groupby('workingday')['cnt'].mean()
     wd.index = wd.index.map({0: 'Hari Libur', 1: 'Hari Kerja'})
+
     fig4, ax4 = plt.subplots(figsize=(5, 3.5))
     ax4.bar(wd.index, wd.values, color=['#4db8ff','#f0c040'],
             width=0.45, edgecolor='none', zorder=3)
+
     for i, (label, val) in enumerate(wd.items()):
-        ax4.text(i, val + 50, f"{int(val):,}", ha='center', color='#f0c040',
-                 fontsize=9, fontfamily='monospace')
+        ax4.text(i, val + 50, f"{int(val):,}", ha='center',
+                 color='#f0c040', fontsize=9, fontfamily='monospace')
+
+    ax4.set_xlabel("Jenis Hari")
+    ax4.set_ylabel("Rata-rata Penyewaan")
     ax4.grid(axis='y', color=AXIS_COLOR, linewidth=0.5, zorder=0)
-    style_ax(ax4, "Rata-rata Penyewaan: Kerja vs Libur")
+
+    style_ax(ax4, "Rata-rata Penyewaan: Hari Kerja vs Libur")
     plt.tight_layout()
     st.pyplot(fig4)
     plt.close()
 
 with c2:
     season_avg = dff.groupby('season')['cnt'].mean().sort_values(ascending=False)
+
     fig5, ax5 = plt.subplots(figsize=(5, 3.5))
     season_colors = ['#f0c040','#4db8ff','#a78bfa','#34d399']
+
     ax5.barh(season_avg.index, season_avg.values,
              color=season_colors[:len(season_avg)], edgecolor='none', zorder=3)
+
     ax5.grid(axis='x', color=AXIS_COLOR, linewidth=0.5, zorder=0)
+    ax5.set_xlabel("Rata-rata Penyewaan")
+
     style_ax(ax5, "Rata-rata Penyewaan per Musim")
     ax5.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{int(x):,}"))
+
     plt.tight_layout()
     st.pyplot(fig5)
     plt.close()
 
+st.markdown(f"""
+<div class="insight-box">
+<b>Insight:</b> Rata-rata penyewaan pada <b>hari kerja</b> sebesar 
+<b style="color:#f0c040">{int(wd.max()):,}</b>, 
+lebih tinggi dibanding hari libur. Hal ini menunjukkan bahwa sepeda lebih sering digunakan untuk kebutuhan mobilitas harian.
+
+Selain itu, musim dengan rata-rata penyewaan tertinggi adalah <b>{season_avg.index[0]}</b> 
+dengan rata-rata sekitar <b style="color:#f0c040">{int(season_avg.max()):,}</b>, 
+yang mengindikasikan pengaruh kondisi lingkungan terhadap aktivitas bersepeda.
+
+<b>Rekomendasi Strategi:</b>
+<ul>
+<li>Fokuskan ketersediaan sepeda pada hari kerja (commuter demand)</li>
+<li>Optimalkan operasional pada musim dengan permintaan tinggi</li>
+<li>Terapkan promosi pada musim atau periode dengan permintaan rendah</li>
+</ul>
+</div>
+""", unsafe_allow_html=True)
+
 st.divider()
 
-st.markdown("## 📋 Kesimpulan")
+st.markdown("## Kesimpulan")
 col_c1, col_c2 = st.columns(2)
 
 with col_c1:
-    st.markdown("""
+    st.markdown(f"""
     <div class="insight-box">
     <b>Kesimpulan 1 — Pengaruh Cuaca</b><br><br>
-    Kondisi cuaca memiliki pengaruh signifikan terhadap jumlah penyewaan sepeda. 
-    Cuaca cerah menghasilkan jumlah penyewaan tertinggi, sedangkan kondisi buruk 
-    seperti hujan atau salju menurunkan minat pengguna secara drastis.
+    Cuaca <i>Clear</i> menghasilkan rata-rata penyewaan tertinggi sebesar 
+    <b style="color:#f0c040">{int(weather_avg.max()):,}</b>, 
+    sedangkan kondisi buruk menurunkan permintaan secara signifikan.
+    <br><br>
+    <b>Aksi:</b> Optimasi operasional saat cuaca cerah dan terapkan strategi promosi saat cuaca buruk.
     </div>
     """, unsafe_allow_html=True)
 
@@ -325,9 +373,10 @@ with col_c2:
     st.markdown(f"""
     <div class="insight-box">
     <b>Kesimpulan 2 — Tren Bulanan</b><br><br>
-    Jumlah penyewaan sepeda tertinggi terjadi pada bulan-bulan pertengahan tahun, 
-    berkaitan dengan musim panas dan kondisi cuaca yang lebih mendukung aktivitas 
-    luar ruangan. Bulan <b>{best_month}</b> menjadi puncak penyewaan dalam dataset ini.
+    Puncak penyewaan terjadi pada bulan <b>{best_month}</b> 
+    dengan total <b style="color:#f0c040">{best_val:,}</b> penyewaan.
+    <br><br>
+    <b>Aksi:</b> Fokuskan resource pada peak season dan gunakan strategi diskon untuk meningkatkan low demand.
     </div>
     """, unsafe_allow_html=True)
 
